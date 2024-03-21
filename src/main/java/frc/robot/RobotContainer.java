@@ -18,7 +18,10 @@ import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.swervedrive.drivebase.AbsoluteDriveAdv;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import java.io.File;
+import java.lang.management.OperatingSystemMXBean;
+import frc.robot.subsystems.swervedrive.ClimberSubsystem;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
+import frc.robot.DeadBand;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a "declarative" paradigm, very
@@ -31,10 +34,12 @@ public class RobotContainer
   // The robot's subsystems and commands are defined here...
   private final SwerveSubsystem drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
                                                                          "swerve/neo"));
+  private final ClimberSubsystem m_climber = new ClimberSubsystem();            
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   final CommandXboxController driverXbox = new CommandXboxController(0);
   final CommandJoystick driverStick = new CommandJoystick(1);
+  private final DeadBand m_deadband = new DeadBand();
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -73,17 +78,17 @@ public class RobotContainer
     // left stick controls translation
     // right stick controls the angular velocity of the robot
     Command driveFieldOrientedAnglularVelocity = drivebase.driveCommand(
-        () -> MathUtil.applyDeadband(driverStick.getY(), OperatorConstants.LEFT_Y_DEADBAND),
-        () -> MathUtil.applyDeadband(driverStick.getX(), OperatorConstants.LEFT_X_DEADBAND),
-        () -> driverStick.getTwist();
+        () -> m_deadband.deadbandresponse(driverStick.getY(), OperatorConstants.JOYSTICK_XY_DEADBAND, OperatorConstants.JOYSTICK_XY_EXP),
+        () -> m_deadband.deadbandresponse(driverStick.getX(), OperatorConstants.JOYSTICK_XY_DEADBAND, OperatorConstants.JOYSTICK_XY_EXP),
+        () -> m_deadband.deadbandresponse(driverStick.getTwist(), OperatorConstants.JOYSTICK_Z_DEADBAND, OperatorConstants.JOYSTICK_Z_EXP));
 
     Command driveFieldOrientedDirectAngleSim = drivebase.simDriveCommand(
         () -> MathUtil.applyDeadband(driverXbox.getLeftY(), OperatorConstants.LEFT_Y_DEADBAND),
         () -> MathUtil.applyDeadband(driverXbox.getLeftX(), OperatorConstants.LEFT_X_DEADBAND),
         () -> driverXbox.getRawAxis(2));
 
-    drivebase.setDefaultCommand(
-        !RobotBase.isSimulation() ? driveFieldOrientedDirectAngle : driveFieldOrientedDirectAngleSim);
+    drivebase.setDefaultCommand(driveFieldOrientedDirectAngle);
+    //drivebase.setDefaultCommand(driveFieldOrientedAngularVelocity);
   }
 
   /**

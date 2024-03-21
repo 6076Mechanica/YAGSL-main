@@ -41,8 +41,11 @@ public final class Constants
 
   public static class OperatorConstants
   {
-
     // Joystick Deadband
+    public static final double JOYSTICK_XY_EXP = 2.25;
+    public static final double JOYSTICK_Z_EXP = 2.25;
+    public static final double JOYSTICK_XY_DEADBAND = 0.1;
+    public static final double JOYSTICK_Z_DEADBAND = 0.1;
     public static final double LEFT_X_DEADBAND  = 0.1;
     public static final double LEFT_Y_DEADBAND  = 0.1;
     public static final double RIGHT_X_DEADBAND = 0.1;

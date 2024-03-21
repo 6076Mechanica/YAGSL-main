@@ -1,6 +1,6 @@
 package frc.robot;
 
-public class DeadBand {
+public final class DeadBand {
     // deadband maybe 0.2, response maybe 2.5
   // -1.0 <= input <= 1.0
   public double deadbandresponse(double input, double deadband, double response) 
