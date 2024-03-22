@@ -79,16 +79,16 @@ public class RobotContainer
     // right stick controls the angular velocity of the robot
     Command driveFieldOrientedAnglularVelocity = drivebase.driveCommand(
         () -> m_deadband.deadbandresponse(driverStick.getY(), OperatorConstants.JOYSTICK_XY_DEADBAND, OperatorConstants.JOYSTICK_XY_EXP),
-        () -> m_deadband.deadbandresponse(driverStick.getX(), OperatorConstants.JOYSTICK_XY_DEADBAND, OperatorConstants.JOYSTICK_XY_EXP),
-        () -> m_deadband.deadbandresponse(driverStick.getTwist(), OperatorConstants.JOYSTICK_Z_DEADBAND, OperatorConstants.JOYSTICK_Z_EXP));
+        () -> -m_deadband.deadbandresponse(driverStick.getX(), OperatorConstants.JOYSTICK_XY_DEADBAND, OperatorConstants.JOYSTICK_XY_EXP),
+        () -> driverStick.getTwist());
 
     Command driveFieldOrientedDirectAngleSim = drivebase.simDriveCommand(
         () -> MathUtil.applyDeadband(driverXbox.getLeftY(), OperatorConstants.LEFT_Y_DEADBAND),
         () -> MathUtil.applyDeadband(driverXbox.getLeftX(), OperatorConstants.LEFT_X_DEADBAND),
         () -> driverXbox.getRawAxis(2));
 
-    drivebase.setDefaultCommand(driveFieldOrientedDirectAngle);
-    //drivebase.setDefaultCommand(driveFieldOrientedAngularVelocity);
+    //drivebase.setDefaultCommand(driveFieldOrientedDirectAngle);
+    drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
   }
 
   /**
