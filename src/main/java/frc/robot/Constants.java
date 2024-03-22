@@ -50,5 +50,75 @@ public final class Constants
     public static final double LEFT_Y_DEADBAND  = 0.1;
     public static final double RIGHT_X_DEADBAND = 0.1;
     public static final double TURN_CONSTANT    = 6;
+    public static final int kDriverControllerPort = 1;
+    public static final int kJoystickPort = 0;
   }
+
+
+  public static class shooterConstants {
+    public static final int kNeoCANPort = 1;
+    public static final int kNeoFreeSpeed = 5500;
+    public static final int kTalonFreeSpeed = 6300;
+    public static final int ktolerance = 500;
+    public static final int kAmpshot = 10;
+    public static final int kSpeakerShot = 25;
+
+    public static final double kS = 0.0005;
+    public static final double kV = 0;
+    public static final double kA = 0;
+
+    public static final double kP = 0.000175;
+    public static final double kI = 0.0003;
+    public static final double kD = 0;
+  }
+
+  public static class intakeConstants {    
+    public static final double kDefaultSpeed = 0.8;
+    public static final int kPhotoSensorPortPWM = 0;
+
+    public static final double kP = 0.00002;
+    public static final double kI = 0;
+    public static final double kD = 0;
+  }
+
+  public static class falonConst {
+    public static final double kS = 0.25;
+    public static final double kV = 0.12;
+    public static final double kA = 0.01;
+    public static final double kP = 0.11;
+    public static final double kI = 0.0;
+    public static final double kD = 0.0;
+    public static final int kFalconAccel = 100;
+  }
+
+  public static class motorPorts {
+    public static final int rightMaster = 1;
+    public static final int rightFollower = 2;
+    public static final int leftMaster = 3;
+    public static final int leftFollower = 4;
+    public static final int intakeMotor = 9;
+    public static final int feedMotor = 13;
+    public static final int shooterMotor = 12;
+    public static final int kTalonPort = 12;
+  }
+
+  public static class SwerveConst {
+    public static final double[] frontLeftModXY = {-10.0, -10.0};
+    public static final double[] frontRightModXY = {10.0, -10.0};
+    public static final double[] rearLeftRModXY = {-10.0, 10.0};
+    public static final double[] rearRightModXY = {10.0, 10.0};
+
+    public static final int frontLeftModAzimuth = 2;
+    public static final int frontLeftModDrive = 3;
+
+    public static final int frontRightModAzimuth = 4;
+    public static final int frontRightModDrive = 5;
+
+    public static final int rearLeftRModAzimuth = 6;
+    public static final int rearLeftRModDrive = 7;
+
+    public static final int rearRightModAzimuth = 8;
+    public static final int rearRightModDrive = 9;
+  }
+
 }

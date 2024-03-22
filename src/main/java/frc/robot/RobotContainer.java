@@ -9,19 +9,23 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.Filesystem;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.swervedrive.drivebase.AbsoluteDriveAdv;
+import frc.robot.subsystems.swervedrive.ClimberSubsystem;
+import frc.robot.subsystems.swervedrive.IntakeSubsys;
+import frc.robot.subsystems.swervedrive.FeederSubsys;
+import frc.robot.subsystems.swervedrive.ShooterSubsys;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import java.io.File;
-import java.lang.management.OperatingSystemMXBean;
-import frc.robot.subsystems.swervedrive.ClimberSubsystem;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
-import frc.robot.DeadBand;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a "declarative" paradigm, very
@@ -34,7 +38,12 @@ public class RobotContainer
   // The robot's subsystems and commands are defined here...
   private final SwerveSubsystem drivebase = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
                                                                          "swerve/neo"));
-  private final ClimberSubsystem m_climber = new ClimberSubsystem();            
+  private final ClimberSubsystem m_climber = new ClimberSubsystem(true);
+  private final FeederSubsys m_feeder = new FeederSubsys();
+  private final IntakeSubsys m_intake = new IntakeSubsys();
+  private final ShooterSubsys m_shooter = new ShooterSubsys();
+
+
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   final CommandXboxController driverXbox = new CommandXboxController(0);
@@ -45,6 +54,30 @@ public class RobotContainer
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
   public RobotContainer()
+
+    //Intake, feeder and shooter commands: 
+    private Command GobbleCMD = Commands.runEnd(m_intake::intake, m_intake::stop, m_intake);
+    private Command StopGobbler = Commands.runOnce(m_intake::stop, m_intake);
+    private Command SpinUp = Commands.run(m_shooter::SpinUp, m_shooter);
+    private Command SpinShooter = Commands.runOnce(m_shooter::spit, m_shooter);
+    private Command Spit = Commands.runOnce(m_shooter::spitSlow, m_shooter);
+    private Command RunFeeder = Commands.runOnce(m_feeder::feed, m_feeder);
+    private Command StopFeeder = Commands.runOnce(m_feeder::stopFeed, m_feeder);
+    private Command SpinDown = Commands.runOnce(m_shooter::Stop, m_shooter); 
+    private Command SetShotSpeed = Commands.runOnce(m_shooter::setShootSpeed); 
+    private Command SetSpitSpeed = Commands.runOnce(m_shooter::setSpitSpeed, m_shooter);
+    private Command ConveyCMD = Commands.runOnce(m_intake::convey, m_intake);
+    private Command feed = Commands.runEnd(m_feeder::feed, m_feeder::stopFeed, m_feeder);
+    private Command EjectFeed = Commands.runEnd(m_feeder::eject, m_feeder::stopFeed, m_feeder);
+    private Command EjectIntake = Commands.runEnd(m_intake::eject, m_intake::stop, m_intake);
+    private Command ToggleClimber = Commands.runOnce(m_climber::toggle);
+    private WaitCommand FeederWait = new WaitCommand(1.25);
+    private WaitCommand shooterWait = new WaitCommand(1);
+    private SequentialCommandGroup Shoot = new SequentialCommandGroup();
+    private SequentialCommandGroup SlowShoot = new SequentialCommandGroup();
+    private ParallelCommandGroup Eject = new ParallelCommandGroup();
+    private ParallelCommandGroup Ejector = new ParallelCommandGroup();
+
   {
     // Configure the trigger bindings
     configureBindings();
@@ -89,6 +122,11 @@ public class RobotContainer
 
     //drivebase.setDefaultCommand(driveFieldOrientedDirectAngle);
     drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
+
+    
+    Shoot.addCommands(SpinShooter, shooterWait, RunFeeder, ConveyCMD, FeederWait, StopGobbler, StopFeeder, SpinDown);
+    Eject.addCommands(GobbleCMD, feed);
+    Ejector.addCommands(EjectFeed, EjectIntake);
   }
 
   /**
@@ -101,6 +139,22 @@ public class RobotContainer
   private void configureBindings()
   {
     // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
+    Trigger spitTrigger = new Trigger(driverStick.button(4));
+    Trigger SetShootSpeedTrigger = new Trigger(driverStick.button(6));
+    Trigger ejectTrigger = new Trigger(driverStick.button(3));
+    Trigger intakeTrigger = new Trigger(driverStick.button(2));
+    Trigger shootTrigger = new Trigger(driverStick.button(1));
+    Trigger feedTrigger = new Trigger(m_shooter::ready);
+    Trigger stagedTrigger = new Trigger(m_feeder::isStaged);
+    Trigger climbTrigger = new Trigger(driverStick.button(11));
+    
+    climbTrigger.onTrue(ToggleClimber);
+    intakeTrigger.whileTrue(Eject);
+    stagedTrigger.onTrue(StopGobbler);
+    shootTrigger.onTrue(Shoot.withInterruptBehavior(InterruptionBehavior.kCancelIncoming));
+    ejectTrigger.whileTrue(Ejector);
+    spitTrigger.onTrue(SetSpitSpeed);
+    SetShootSpeedTrigger.onTrue(SetShotSpeed);
 
     driverXbox.a().onTrue((Commands.runOnce(drivebase::zeroGyro)));
     driverXbox.x().onTrue(Commands.runOnce(drivebase::addFakeVisionReading));
